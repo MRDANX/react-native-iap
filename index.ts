@@ -328,7 +328,7 @@ export const requestPurchase = (
 * @param {boolean} [andDangerouslyFinishTransactionAutomaticallyIOS] You should set this to false and call finishTransaction manually when you have delivered the purchased goods to the user. It defaults to true to provide backwards compatibility. Will default to false in version 4.0.0.
 * @returns {Promise<InAppPurchase>}
 */
-export const requestPurchaseForUserIos = (
+export const requestPurchaseForUserIOS = (
   sku: string,
   orderId: string,
   andDangerouslyFinishTransactionAutomaticallyIOS?: boolean,
