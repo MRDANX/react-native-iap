@@ -169,6 +169,42 @@ RCT_EXPORT_METHOD(buyProduct:(NSString*)sku
     }
 }
 
+RCT_EXPORT_METHOD(buyProductForUser:(NSString*)sku
+                  andOrderId:(NSString*)orderId
+                  andDangerouslyFinishTransactionAutomatically:(BOOL)finishAutomatically
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+    pendingTransactionWithAutoFinish = finishAutomatically;
+    SKProduct *product;
+    @synchronized (validProducts) {
+        for (SKProduct *p in validProducts) {
+            if([sku isEqualToString:p.productIdentifier]) {
+                product = p;
+                break;
+            }
+        }
+    }
+    if (product) {
+        NSString *key = RCTKeyForInstance(product.productIdentifier);
+        [self addPromiseForKey:key resolve:resolve reject:reject];
+            
+        SKMutablePayment *payment = [SKMutablePayment paymentWithProduct:product];
+        payment.applicationUsername = orderId;
+        [[SKPaymentQueue defaultQueue] addPayment:payment];
+    } else {
+        if (hasListeners) {
+            NSDictionary *err = [NSDictionary dictionaryWithObjectsAndKeys:
+                                 @"Invalid product ID.", @"debugMessage",
+                                 @"E_DEVELOPER_ERROR", @"code",
+                                 @"Invalid product ID.", @"message",
+                                 nil
+                                 ];
+            [self sendEventWithName:@"purchase-error" body:err];
+        }
+        reject(@"E_DEVELOPER_ERROR", @"Invalid product ID.", nil);
+    }
+}
+
 RCT_EXPORT_METHOD(buyProductWithOffer:(NSString*)sku
                   forUser:(NSString*)usernameHash
                   withOffer:(NSDictionary*)discountOffer
@@ -313,6 +349,7 @@ RCT_EXPORT_METHOD(getPendingTransactions:(RCTPromiseResolveBlock)resolve
                                                  @(item.transactionDate.timeIntervalSince1970 * 1000), @"transactionDate",
                                                  item.transactionIdentifier, @"transactionId",
                                                  item.payment.productIdentifier, @"productId",
+                                                 item.payment.applicationUsername,@"orderId",
                                                  [receiptData base64EncodedStringWithOptions:0], @"transactionReceipt",
                                                  nil
                                                  ];
@@ -702,6 +739,7 @@ RCT_EXPORT_METHOD(getPendingTransactions:(RCTPromiseResolveBlock)resolve
                                              @(transaction.transactionDate.timeIntervalSince1970 * 1000), @"transactionDate",
                                              transaction.transactionIdentifier, @"transactionId",
                                              transaction.payment.productIdentifier, @"productId",
+                                             transaction.payment.applicationUsername,@"orderId",
                                              [receiptData base64EncodedStringWithOptions:0], @"transactionReceipt",
                                              nil
                                              ];

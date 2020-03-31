@@ -322,6 +322,38 @@ export const requestPurchase = (
   })();
 
 /**
+* Request a purchase for product. This will be received in `PurchaseUpdatedListener`.
+* @param {string} sku The product's sku/ID
+* @param {string} orderId The user's system orderId
+* @param {boolean} [andDangerouslyFinishTransactionAutomaticallyIOS] You should set this to false and call finishTransaction manually when you have delivered the purchased goods to the user. It defaults to true to provide backwards compatibility. Will default to false in version 4.0.0.
+* @returns {Promise<InAppPurchase>}
+*/
+export const requestPurchaseForUserIos = (
+  sku: string,
+  orderId: string,
+  andDangerouslyFinishTransactionAutomaticallyIOS?: boolean,
+): Promise<InAppPurchase> =>
+  Platform.select({
+    ios: async () => {
+      andDangerouslyFinishTransactionAutomaticallyIOS =
+        andDangerouslyFinishTransactionAutomaticallyIOS === undefined
+          ? false
+          : andDangerouslyFinishTransactionAutomaticallyIOS;
+      if (andDangerouslyFinishTransactionAutomaticallyIOS) {
+        console.warn(
+          'You are dangerously allowing react-native-iap to finish your transaction automatically. You should set andDangerouslyFinishTransactionAutomatically to false when calling requestPurchase and call finishTransaction manually when you have delivered the purchased goods to the user. It defaults to true to provide backwards compatibility. Will default to false in version 4.0.0.',
+        );
+      }
+      checkNativeiOSAvailable();
+      return RNIapIos.buyProductForUser(
+        sku,
+        orderId,
+        andDangerouslyFinishTransactionAutomaticallyIOS,
+      );
+    },
+  })();
+
+/**
  * Request a purchase for product. This will be received in `PurchaseUpdatedListener`.
  * @param {string} sku The product's sku/ID
  * @param {boolean} [andDangerouslyFinishTransactionAutomaticallyIOS] You should set this to false and call finishTransaction manually when you have delivered the purchased goods to the user. It defaults to true to provide backwards compatibility. Will default to false in version 4.0.0.
