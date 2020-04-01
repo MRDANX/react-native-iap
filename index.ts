@@ -122,6 +122,10 @@ export interface SubscriptionPurchase extends ProductPurchase {
   originalTransactionIdentifierIOS?: string;
 }
 
+export interface ProductPurchaseForUser extends ProductPurchase {
+  orderId: string;
+}
+
 export type Purchase = InAppPurchase | SubscriptionPurchase;
 
 const ANDROID_ITEM_TYPE_SUBSCRIPTION = 'subs';

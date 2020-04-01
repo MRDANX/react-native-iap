@@ -96,6 +96,9 @@ export interface SubscriptionPurchase extends ProductPurchase {
     originalTransactionDateIOS?: string;
     originalTransactionIdentifierIOS?: string;
 }
+export interface ProductPurchaseForUser extends ProductPurchase {
+    orderId: string;
+}
 export declare type Purchase = InAppPurchase | SubscriptionPurchase;
 export declare const PROMOTED_PRODUCT = "iap-promoted-product";
 /**
